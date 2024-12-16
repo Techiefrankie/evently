@@ -54,7 +54,7 @@ func GetDbInstance() **gorm.DB {
 		InitGorm()
 		return DB
 	}
-	
+
 	return DB
 }
 
@@ -82,6 +82,7 @@ func runMigrations(db **gorm.DB) {
 	// Migrate the schema
 	err := (*db).AutoMigrate(
 		&models.Event{},
+		&models.User{},
 	)
 
 	if err != nil {

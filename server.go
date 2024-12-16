@@ -15,6 +15,7 @@ func RegisterRoutes() {
 	server.GET("event/", controller.GetEvents)
 	server.GET("event/:id", controller.GetEvent)
 	server.DELETE("event/delete/:id", controller.DeleteEvent)
+	server.POST("user/create", controller.CreateUser)
 
 	err := server.Run()
 

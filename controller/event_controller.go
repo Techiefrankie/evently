@@ -44,7 +44,7 @@ func GetEvents(context *gin.Context) {
 }
 
 func CreateEvent(context *gin.Context) {
-	var event models.Event
+	var event api.EventDto
 	err := context.BindJSON(&event)
 
 	if err != nil {
@@ -55,7 +55,7 @@ func CreateEvent(context *gin.Context) {
 	fmt.Println("Creating event: ", event)
 
 	// save event
-	err = services.SaveEvent(&event)
+	err = services.SaveEvent(adapter.EventDtoToModel(event))
 
 	if err != nil {
 		fmt.Println(err)

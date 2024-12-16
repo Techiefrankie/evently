@@ -4,21 +4,55 @@ import (
 	"errors"
 	"evently/config"
 	"evently/models"
-	"time"
+	"fmt"
 )
 
-func SaveEvent(event *models.Event) error {
+func saveEntity[T any](entity *T) error {
 	var db = *config.GetDbInstance()
-	event.DateTime = time.Now()
-	event.UserId = 1
-
-	err := db.Create(&event)
+	err := db.Create(&entity)
 
 	if err != nil {
 		return err.Error
 	}
 
 	return nil
+
+}
+
+func SaveUser(user models.User) error {
+	err := saveEntity(&user)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func SaveEvent(event *models.Event) error {
+	user := GetUser(event.UserId)
+	if user != nil {
+		event.UserId = user.Id
+	} else {
+		return errors.New(fmt.Sprintf("user not found with Id: %v", event.UserId))
+	}
+
+	err := saveEntity(&event)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func GetUser(id int) *models.User {
+	var db = *config.GetDbInstance()
+	var user models.User
+	db.First(&user, id) // search for user with id primary key
+	// db.First(&user, "first_name = ?", "techie") // search for user with first_name = techie
+
+	return &user
 }
 
 func GetEvents() []models.Event {
