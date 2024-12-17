@@ -16,7 +16,6 @@ func EventDtoToModel(dto api.EventDto) *models.Event {
 		DateTime:    time.Now(),
 		UserId:      dto.UserId,
 	}
-
 }
 
 func EventToDto(event models.Event) api.EventDto {

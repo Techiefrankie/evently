@@ -73,11 +73,11 @@ func GetEvent(id uint) *models.Event {
 	return &event
 }
 
-func DeleteEvent(id uint) error {
+func DeleteEvent(id uint, userId int) error {
 	var db = *config.GetDbInstance()
 	var event = GetEvent(id)
 
-	if event != nil {
+	if event != nil && event.UserId == userId {
 		err := db.Delete(&event)
 
 		if err != nil {

@@ -1,6 +1,8 @@
 package security
 
 import (
+	"errors"
+	"evently/api"
 	"evently/models"
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
@@ -18,6 +20,46 @@ func GenerateToken(user models.User) (string, error) {
 	})
 	return token.SignedString([]byte(SecretKey))
 }
+
+func ValidateToken(token string) (api.AuthResponse, error) {
+	if token == "" {
+		return api.AuthResponse{}, errors.New("access token is required")
+	}
+
+	parsedToken, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
+		_, ok := token.Method.(*jwt.SigningMethodHMAC)
+		if !ok {
+			return nil, errors.New("unexpected signing method")
+		}
+
+		return []byte(SecretKey), nil
+	})
+
+	if err != nil {
+		return api.AuthResponse{}, errors.New("could not parse token")
+	}
+
+	if parsedToken.Valid {
+		claims, ok := parsedToken.Claims.(jwt.MapClaims)
+		if ok {
+			if time.Unix(int64(claims["exp"].(float64)), 0).Sub(time.Now()) > 0 {
+				return api.AuthResponse{
+					Email:  claims["email"].(string),
+					UserId: int(claims["user_id"].(float64)),
+					//Roles:     claims["roles"].([]string),
+					//ExpiresIn: claims["exp"].(int) - int(time.Now().Unix()),
+				}, nil
+			} else {
+				return api.AuthResponse{}, errors.New("token expired")
+			}
+		} else {
+			return api.AuthResponse{}, errors.New("invalid token")
+		}
+	} else {
+		return api.AuthResponse{}, errors.New("invalid token")
+	}
+}
+
 func GetEncryptedPassword(rawPassword string) (string, error) {
 	password, err := bcrypt.GenerateFromPassword([]byte(rawPassword), bcrypt.DefaultCost)
 

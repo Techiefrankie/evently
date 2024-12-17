@@ -2,6 +2,7 @@ package main
 
 import (
 	"evently/controller"
+	"evently/middleware"
 	"fmt"
 	"github.com/gin-gonic/gin"
 )
@@ -9,12 +10,15 @@ import (
 func RegisterRoutes() {
 	server := gin.Default()
 
+	// configure protected routes
+	authenticated := server.Group("/", middleware.Authenticate)
+	authenticated.POST("event/create", middleware.Authenticate, controller.CreateEvent)
+	authenticated.GET("event/", controller.GetEvents)
+	authenticated.GET("event/:id", controller.GetEvent)
+	authenticated.DELETE("event/delete/:id", controller.DeleteEvent)
+
 	// server routes
 	server.GET("/", controller.Home)
-	server.POST("event/create", controller.CreateEvent)
-	server.GET("event/", controller.GetEvents)
-	server.GET("event/:id", controller.GetEvent)
-	server.DELETE("event/delete/:id", controller.DeleteEvent)
 	server.POST("user/create", controller.CreateUser)
 	server.POST("user/login", controller.Login)
 

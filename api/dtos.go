@@ -11,7 +11,7 @@ type EventDto struct {
 	Description string `json:"description" binding:"required"`
 	Location    string `json:"location" binding:"required"`
 	DateTime    string `json:"date_time"`
-	UserId      int    `json:"user_id" binding:"required"`
+	UserId      int    `json:"user_id"`
 }
 
 type UserDto struct {
