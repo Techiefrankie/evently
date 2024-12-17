@@ -3,7 +3,7 @@ package adapter
 import (
 	"evently/api"
 	"evently/models"
-	"evently/util"
+	"evently/security"
 	"fmt"
 	"time"
 )
@@ -41,7 +41,7 @@ func EventsToDtos(events []models.Event) []api.EventDto {
 }
 
 func UserDtoToModel(dto api.UserDto) models.User {
-	encryptedPassword, err := util.GetEncryptedPassword(dto.Password)
+	encryptedPassword, err := security.GetEncryptedPassword(dto.Password)
 	if err != nil {
 		fmt.Println("Error encrypting password: ", err)
 		return models.User{}

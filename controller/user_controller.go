@@ -25,3 +25,21 @@ func CreateUser(context *gin.Context) {
 
 	context.JSON(http.StatusOK, getResponse("User created successfully", http.StatusOK))
 }
+
+func Login(context *gin.Context) {
+	var loginRequest api.LoginDto
+
+	err := context.BindJSON(&loginRequest)
+	if err != nil {
+		context.JSON(http.StatusBadRequest, getResponse("Invalid request"+err.Error(), http.StatusBadRequest))
+		return
+	}
+
+	response, err := services.Login(loginRequest.Email, loginRequest.Password)
+	if err != nil {
+		context.JSON(http.StatusUnauthorized, getResponse("Invalid email or password", http.StatusUnauthorized))
+		return
+	}
+
+	context.JSON(http.StatusOK, response)
+}

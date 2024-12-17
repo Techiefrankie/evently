@@ -21,3 +21,16 @@ type UserDto struct {
 	Email     string `json:"email" binding:"required"`
 	Password  string `json:"password" binding:"required"`
 }
+
+type LoginDto struct {
+	Email    string `json:"email" binding:"required"`
+	Password string `json:"password" binding:"required"`
+}
+
+type AuthResponse struct {
+	Email       string   `json:"email"`
+	UserId      int      `json:"user_id"`
+	AccessToken string   `json:"access_token"`
+	ExpiresIn   int      `json:"expires_in"`
+	Roles       []string `json:"roles"`
+}

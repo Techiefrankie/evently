@@ -2,8 +2,10 @@ package services
 
 import (
 	"errors"
+	"evently/api"
 	"evently/config"
 	"evently/models"
+	"evently/security"
 	"fmt"
 )
 
@@ -86,4 +88,34 @@ func DeleteEvent(id uint) error {
 	}
 
 	return nil
+}
+
+func Login(email string, password string) (api.AuthResponse, error) {
+	var db = *config.GetDbInstance()
+	var user models.User
+	db.Where("email = ?", email).First(&user)
+
+	if user != (models.User{}) {
+
+		if security.PasswordMatches(password, user.Password) {
+			// generate token
+			token, err := security.GenerateToken(user)
+
+			if err != nil {
+				return api.AuthResponse{}, err
+			}
+
+			return api.AuthResponse{
+				Email:       user.Email,
+				UserId:      user.Id,
+				AccessToken: token,
+				ExpiresIn:   30,
+				Roles:       []string{"USER"},
+			}, nil
+		} else {
+			return api.AuthResponse{}, errors.New("password is incorrect")
+		}
+	}
+
+	return api.AuthResponse{}, errors.New(fmt.Sprintf("email %v is incorrect", email))
 }
