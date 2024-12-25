@@ -21,7 +21,7 @@ func CreateUser(context *gin.Context) {
 
 	// validate request
 	validationRequest := validation.New(userRequest,
-		map[string]string{"password": `^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$`})
+		map[string]string{"password": `^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$`}, nil)
 
 	validationErrors := validationRequest.Validate()
 	if len(validationErrors) > 0 {

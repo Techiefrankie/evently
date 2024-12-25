@@ -2,6 +2,7 @@ package validation
 
 import (
 	"errors"
+	"fmt"
 	"github.com/dlclark/regexp2"
 	"github.com/go-playground/validator/v10"
 	"log"
@@ -11,13 +12,15 @@ import (
 type Request struct {
 	Request interface{}
 	Regex   map[string]string
+	Message map[string]string
 }
 
 // New is a function to create a new validation request
-func New(request interface{}, regex map[string]string) Request {
+func New(request interface{}, regex map[string]string, message map[string]string) Request {
 	return Request{
 		Request: request,
 		Regex:   regex,
+		Message: message,
 	}
 }
 
@@ -46,7 +49,11 @@ func (req Request) Validate() map[string]string {
 
 			if err != nil {
 				// add the field and error to the map
-				validationErrors[field] = err.Error()
+				if msg := req.Message[field]; msg != "" {
+					validationErrors[field] = msg
+				} else {
+					validationErrors[field] = err.Error()
+				}
 			}
 		}
 	}
@@ -59,7 +66,16 @@ func (req Request) Validate() map[string]string {
 		if errors.As(err, &errs) {
 			for _, fieldError := range errs {
 				// Add the field name and validation error to the map
-				validationErrors[fieldError.Field()] = fieldError.Error()
+				param := fieldError.Param()
+				valErr := fieldError.Error()
+
+				if msg := req.Message[fieldError.Field()]; msg != "" {
+					valErr = msg
+				} else if param != "" {
+					valErr = fmt.Sprintf("%v, param=[%v]", fieldError.Error(), param)
+				}
+
+				validationErrors[fieldError.Field()] = valErr
 			}
 		}
 	}
