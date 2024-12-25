@@ -3,13 +3,14 @@ package security
 import (
 	"errors"
 	"evently/api"
+	"evently/config"
 	"evently/models"
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 	"time"
 )
 
-const SecretKey = "hU8w7z!9@KqXy&3N4fT*5bV6pQ#A1RsGdL"
+var SecretKey = config.GetEnv(config.SecretKey, "")
 
 func GenerateToken(user models.User) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{

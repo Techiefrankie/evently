@@ -1,8 +1,10 @@
 package main
 
 import (
+	"evently/config"
 	"evently/controller"
 	"evently/middleware"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"log"
 )
@@ -28,7 +30,7 @@ func RegisterRoutes() {
 	server.POST("user/create", controller.CreateUser)
 	server.POST("user/login", controller.Login)
 
-	err = server.Run(":8080")
+	err = server.Run(fmt.Sprintf(":%v", config.GetEnv(config.Port, "8080")))
 
 	if err != nil {
 		log.Println(err)
