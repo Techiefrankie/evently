@@ -5,6 +5,7 @@ import (
 	"evently/api"
 	"evently/services"
 	"evently/utils"
+	"evently/validation"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -15,6 +16,16 @@ func CreateUser(context *gin.Context) {
 	err := context.BindJSON(&userRequest)
 	if err != nil {
 		context.JSON(http.StatusBadRequest, utils.GetResponse("Invalid request"+err.Error(), http.StatusBadRequest))
+		return
+	}
+
+	// validate request
+	validationRequest := validation.New(userRequest,
+		map[string]string{"password": `^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$`})
+
+	validationErrors := validationRequest.Validate()
+	if len(validationErrors) > 0 {
+		context.JSON(http.StatusBadRequest, validationErrors)
 		return
 	}
 
@@ -33,6 +44,15 @@ func Login(context *gin.Context) {
 	err := context.BindJSON(&loginRequest)
 	if err != nil {
 		context.JSON(http.StatusBadRequest, utils.GetResponse("Invalid request"+err.Error(), http.StatusBadRequest))
+		return
+	}
+
+	// validate request
+	validationRequest := validation.Request{Request: loginRequest}
+	validationErrors := validationRequest.Validate()
+
+	if len(validationErrors) > 0 {
+		context.JSON(http.StatusBadRequest, validationErrors)
 		return
 	}
 

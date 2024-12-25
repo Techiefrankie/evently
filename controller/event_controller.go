@@ -6,6 +6,7 @@ import (
 	"evently/models"
 	"evently/services"
 	"evently/utils"
+	"evently/validation"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -53,6 +54,15 @@ func CreateEvent(context *gin.Context) {
 
 	if err != nil {
 		context.JSON(http.StatusBadRequest, utils.GetResponse(err.Error(), http.StatusBadRequest))
+		return
+	}
+
+	// validate request
+	validationRequest := validation.Request{Request: event}
+	validationErrors := validationRequest.Validate()
+
+	if len(validationErrors) > 0 {
+		context.JSON(http.StatusBadRequest, validationErrors)
 		return
 	}
 

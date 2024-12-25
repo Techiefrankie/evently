@@ -3,12 +3,18 @@ package main
 import (
 	"evently/controller"
 	"evently/middleware"
-	"fmt"
 	"github.com/gin-gonic/gin"
+	"log"
 )
 
 func RegisterRoutes() {
 	server := gin.Default()
+	err := server.SetTrustedProxies([]string{"127.0.0.1"})
+
+	if err != nil {
+		log.Println(err)
+		return
+	}
 
 	// configure protected routes
 	authenticated := server.Group("/", middleware.Authenticate)
@@ -22,10 +28,10 @@ func RegisterRoutes() {
 	server.POST("user/create", controller.CreateUser)
 	server.POST("user/login", controller.Login)
 
-	err := server.Run()
+	err = server.Run(":8080")
 
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		return
 	}
 }
