@@ -58,7 +58,7 @@ func CreateEvent(context *gin.Context) {
 	}
 
 	// validate request
-	validationRequest := validation.Request{Request: event}
+	validationRequest := validation.Request{Body: event}
 	validationErrors := validationRequest.Validate()
 
 	if len(validationErrors) > 0 {

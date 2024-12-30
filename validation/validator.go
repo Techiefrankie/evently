@@ -2,83 +2,76 @@ package validation
 
 import (
 	"errors"
-	"fmt"
 	"github.com/dlclark/regexp2"
 	"github.com/go-playground/validator/v10"
 	"log"
+	"reflect"
+	"strings"
 )
 
-// Request is a struct to hold the request and regex validations
 type Request struct {
-	Request interface{}
-	Regex   map[string]string
-	Message map[string]string
+	Body interface{}
+	Func map[string]func(fl validator.FieldLevel) bool
 }
 
-// New is a function to create a new validation request
-func New(request interface{}, regex map[string]string, message map[string]string) Request {
-	return Request{
-		Request: request,
-		Regex:   regex,
-		Message: message,
-	}
+func New(body interface{}, Func map[string]func(fl validator.FieldLevel) bool) Request {
+	return Request{Body: body, Func: Func}
 }
 
-// Validate is a function to validate request
 func (req Request) Validate() map[string]string {
-	validate := validator.New(validator.WithRequiredStructEnabled())
+	validate := validator.New()
 	validationErrors := make(map[string]string)
 
-	// register regex validations for the respective fields
-	var field string
-	if len(req.Regex) > 0 {
-		for functionName, regex := range req.Regex {
-			err := validate.RegisterValidation(functionName, func(fl validator.FieldLevel) bool {
+	//  Register custom validation for the 'msg' tag for providing custom error messages
+	validate.RegisterValidation("msg", func(fl validator.FieldLevel) bool { return true })
 
-				field = fl.FieldName()
-				re := regexp2.MustCompile(regex, regexp2.None)
-				match, er := re.MatchString(fl.Field().String())
-
-				if er != nil {
-					log.Println(er)
-					return false
-				}
-
-				return match
-			})
-
-			if err != nil {
-				// add the field and error to the map
-				if msg := req.Message[field]; msg != "" {
-					validationErrors[field] = msg
-				} else {
-					validationErrors[field] = err.Error()
-				}
-			}
-		}
+	for tag, fn := range req.Func {
+		validate.RegisterValidation(tag, fn)
 	}
 
-	err := validate.Struct(req.Request)
-
-	if err != nil {
-		// Check if the error is of type validator.ValidationErrors
+	if err := validate.Struct(req.Body); err != nil {
 		var errs validator.ValidationErrors
 		if errors.As(err, &errs) {
 			for _, fieldError := range errs {
-				// Add the field name and validation error to the map
-				param := fieldError.Param()
-				valErr := fieldError.Error()
-
-				if msg := req.Message[fieldError.Field()]; msg != "" {
-					valErr = msg
-				} else if param != "" {
-					valErr = fmt.Sprintf("%v, param=[%v]", fieldError.Error(), param)
+				fieldType := reflect.TypeOf(req.Body)
+				if fieldType.Kind() == reflect.Ptr {
+					fieldType = fieldType.Elem() // Dereference the pointer to get the actual type
 				}
 
-				validationErrors[fieldError.Field()] = valErr
+				field, _ := fieldType.FieldByName(fieldError.StructField())
+				if msg := getErrorMessage(field); msg != "" {
+					validationErrors[fieldError.Field()] = msg
+				} else {
+					panic("Error message not set for field: " + fieldError.Field())
+				}
 			}
 		}
 	}
 
 	return validationErrors
+}
+
+func getErrorMessage(field reflect.StructField) string {
+	for _, part := range strings.Split(field.Tag.Get("validate"), ",") {
+		if kv := strings.Split(part, "="); kv[0] == "msg" {
+			return kv[1]
+		}
+	}
+	return ""
+}
+
+func ValidatePassword() func(fl validator.FieldLevel) bool {
+	regex := `^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$`
+
+	return func(fl validator.FieldLevel) bool {
+		re := regexp2.MustCompile(regex, regexp2.None)
+		match, er := re.MatchString(fl.Field().String())
+
+		if er != nil {
+			log.Println(er)
+			return false
+		}
+
+		return match
+	}
 }

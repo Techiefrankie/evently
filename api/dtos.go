@@ -16,10 +16,10 @@ type EventDto struct {
 
 type UserDto struct {
 	Id        uint   `json:"id"`
-	FirstName string `json:"first_name" validate:"required,min=2,max=100"`
-	LastName  string `json:"last_name" validate:"required,min=2,max=100"`
-	Email     string `json:"email" validate:"required,email"`
-	Password  string `json:"password" validate:"required,password"`
+	FirstName string `json:"first_name" validate:"required,min=2,max=100,msg=First name is required and must be between 2 and 100 characters"`
+	LastName  string `json:"last_name" validate:"required,min=2,max=100,msg=Last name is required and must be between 2 and 100 characters"`
+	Email     string `json:"email" validate:"required,email,msg=A valid email is required"`
+	Password  string `json:"password" validate:"required,Password,msg=Password must be 8-20 characters long and contain at least one uppercase letter; one lowercase letter; one digit and one special character"`
 }
 
 type LoginDto struct {

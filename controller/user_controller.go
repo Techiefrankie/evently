@@ -7,6 +7,7 @@ import (
 	"evently/utils"
 	"evently/validation"
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 	"net/http"
 )
 
@@ -21,7 +22,7 @@ func CreateUser(context *gin.Context) {
 
 	// validate request
 	validationRequest := validation.New(userRequest,
-		map[string]string{"password": `^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$`}, nil)
+		map[string]func(fl validator.FieldLevel) bool{"Password": validation.ValidatePassword()})
 
 	validationErrors := validationRequest.Validate()
 	if len(validationErrors) > 0 {
@@ -48,7 +49,7 @@ func Login(context *gin.Context) {
 	}
 
 	// validate request
-	validationRequest := validation.Request{Request: loginRequest}
+	validationRequest := validation.Request{Body: loginRequest}
 	validationErrors := validationRequest.Validate()
 
 	if len(validationErrors) > 0 {
